@@ -1,0 +1,32 @@
+name: Build
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: nixpkgs/nix:nixos-23.11
+    env:
+      NIX_PATH: nixpkgs=channel:nixos-23.11
+      NIX_CONFIG: sandbox = false
+    steps:
+      - name: Install node and cachix
+        run: |
+          set -eu
+          nix-env -f '<nixpkgs>' -iA nodejs_20 cachix
+          echo /root/.nix-profile/bin >> $GITHUB_PATH
+          cachix use moergo-glove80-zmk-dev
+      - name: Checkout
+        uses: https://github.com/actions/checkout@v4
+      - name: Checkout moergo-sc/zmk
+        run: git clone --depth 1 https://github.com/moergo-sc/zmk src
+      - name: Build Go60 combined firmware
+        run: nix-build config -o combined
+      - name: Copy result out of nix store
+        run: cp combined/go60.uf2 go60.uf2
+      - name: Upload result
+        uses: https://code.forgejo.org/forgejo/upload-artifact@v4
+        with:
+          name: go60.uf2
+          path: go60.uf2
