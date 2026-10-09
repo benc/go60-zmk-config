@@ -185,6 +185,10 @@
 
 &cirque_rh_listener {
     input-processors = <&zip_xy_scaler 3 1>;
+    nav {
+        layers = <LAYER_Nav>;
+        input-processors = <&zip_xy_scaler 9 1>;
+    };
 };
 
 &cirque_lh_listener {
